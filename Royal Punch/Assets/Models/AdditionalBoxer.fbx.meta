@@ -1,0 +1,157 @@
+fileFormatVersion: 2
+guid: 05da530a745754c6f92938aa24d5d3a2
+ModelImporter:
+  serializedVersion: 19301
+  internalIDToNameTable:
+  - first:
+      74: 1853930045687050132
+    second: Armature|BossPunch
+  - first:
+      74: -4249271532655925907
+    second: Armature|BossSuper1
+  - first:
+      74: -3694837490885867270
+    second: Armature|BossSuper2
+  - first:
+      74: 4218738748639125452
+    second: Armature|BossSuper3
+  - first:
+      74: 5446555761409609982
+    second: Armature|BossSuper4
+  - first:
+      74: -2529750287413735814
+    second: Armature|BossSuper5
+  - first:
+      74: -5730947160527907376
+    second: Armature|BossSuper6
+  - first:
+      74: 4719080212774041247
+    second: Armature|GGPunch
+  - first:
+      74: 3441447010930403880
+    second: Armature|GGPunch2
+  - first:
+      74: 2789604289822619476
+    second: Armature|Idle1
+  - first:
+      74: 213856876459495052
+    second: Armature|Idle2
+  - first:
+      74: 6363340012903033430
+    second: Armature|Lose
+  - first:
+      74: -3864202997507404902
+    second: Armature|Round
+  - first:
+      74: 1303299601406483602
+    second: Armature|run
+  - first:
+      74: -5876635091893636579
+    second: Armature|RunBack
+  - first:
+      74: -6087521085066771334
+    second: Armature|runL
+  - first:
+      74: 4394275284615226746
+    second: Armature|runR
+  - first:
+      74: -1447770533949552782
+    second: Armature|T
+  - first:
+      74: -4612652610764426765
+    second: Armature|win1
+  - first:
+      74: 1970597817927090432
+    second: Armature|WinDance
+  externalObjects: {}
+  materials:
+    materialImportMode: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
