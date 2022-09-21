@@ -7,6 +7,8 @@ public class Player : MonoBehaviour
     [SerializeField] private float _moveSpeed;
     [SerializeField] private float _turnSpeed;
     [SerializeField] private GameObject _lockTarget;
+    [SerializeField] private ParticleSystem _leftPunch;
+    [SerializeField] private ParticleSystem _rightPunch;
     private bool _isMoving = false;
     private Vector3 _movePosition;
     private Rigidbody _ridigbody;
@@ -15,6 +17,8 @@ public class Player : MonoBehaviour
     private int _dirXHash;
     private int _dirYHash;
     private Vector2 _animDir;
+    private AnimEventHelper _animeEventHelper;
+    private const int PUNCH_LAYER = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -22,6 +26,8 @@ public class Player : MonoBehaviour
         _ridigbody = GetComponent<Rigidbody>();
         _animator = GetComponentInChildren<Animator>();
         _model = _animator.gameObject.transform;
+        _animeEventHelper = GetComponentInChildren<AnimEventHelper>();
+        _animeEventHelper.MyEvent.AddListener(PlayPunchParticle);
 
         _dirXHash = Animator.StringToHash("DirX");
         _dirYHash = Animator.StringToHash("DirY");
@@ -37,6 +43,34 @@ public class Player : MonoBehaviour
         {
             _isMoving = true;
         }    
+    }
+
+    public void PlayPunchParticle(int hand)
+    {
+        switch (hand)
+        {
+            case 1: //Left
+                _leftPunch.Play();
+                break;
+            case 2: //Right
+                _rightPunch.Play();
+                break;
+            default:
+                Debug.Log("No such hand number " + hand);
+                break;
+        }
+    }
+
+    public void Punch(bool state)
+    {
+        if (state)
+        {
+            _animator.SetLayerWeight(PUNCH_LAYER, 1);
+        }
+        else
+        {
+            _animator.SetLayerWeight(PUNCH_LAYER, 0);
+        }
     }
 
     public void Stop()
@@ -61,6 +95,22 @@ public class Player : MonoBehaviour
             AnimSetState(_animDir);
             
             _isMoving = false;
+        }
+    }
+
+    private void OnCollisionEnter(Collision other) 
+    {
+        if (other.gameObject.CompareTag("Enemy"))
+        {
+            Punch(true);
+        }
+    }
+
+    private void OnCollisionExit(Collision other) 
+    {
+        if (other.gameObject.CompareTag("Enemy"))
+        {
+            Punch(false);
         }
     }
 }
