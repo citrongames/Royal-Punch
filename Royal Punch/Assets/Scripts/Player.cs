@@ -27,7 +27,7 @@ public class Player : MonoBehaviour
         _animator = GetComponentInChildren<Animator>();
         _model = _animator.gameObject.transform;
         _animeEventHelper = GetComponentInChildren<AnimEventHelper>();
-        _animeEventHelper.MyEvent.AddListener(PlayPunchParticle);
+        _animeEventHelper.MyEvent += PlayPunchParticle;
 
         _dirXHash = Animator.StringToHash("DirX");
         _dirYHash = Animator.StringToHash("DirY");
