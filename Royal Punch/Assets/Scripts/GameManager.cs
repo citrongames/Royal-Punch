@@ -34,10 +34,10 @@ public class GameManager : MonoBehaviour
                 break;
             case TouchPhase.Moved:
             case TouchPhase.Stationary:
-                _player.Move(_joystick.MoveJoystick(_touchInfo.Direction));
+                _player.MoveTo(_joystick.MoveJoystick(_touchInfo.Direction));
                 break;
             case TouchPhase.Ended:
-                _player.Stop();
+                _player.StopMoving();
                 _joystick.ShowJoystick(false, Vector3.zero);
                 break;
         }
