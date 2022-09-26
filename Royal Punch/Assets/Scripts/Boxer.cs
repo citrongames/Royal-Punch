@@ -36,6 +36,9 @@ public class Boxer : MonoBehaviour
     protected AnimEventHelper _punchAnimEvents;
     protected Boxer _punchObject;
 
+    //Healthbar logic
+    [SerializeField] protected Healthbar _healthbar;
+
     protected virtual void Init()
     {
         _ridigbody = GetComponent<Rigidbody>();
@@ -45,7 +48,14 @@ public class Boxer : MonoBehaviour
         _punchAnimEvents = GetComponentInChildren<AnimEventHelper>();
         _punchAnimEvents.MyEvent += Punch;
 
+        _healthbar = GetComponentInChildren<Healthbar>();
+
         _health = _data.Health;
+
+        if (_healthbar != null)
+        {
+            _healthbar.SetHealth(_health, _data.Health);
+        }
     }
 
     protected virtual void UpdateFixed()
@@ -149,6 +159,11 @@ public class Boxer : MonoBehaviour
         {
             Debug.Log("No health " + gameObject.name);
             _health = 0;
+        }
+
+        if (_healthbar != null)
+        {
+            _healthbar.SetHealth(_health, _data.Health);
         }
     }
 

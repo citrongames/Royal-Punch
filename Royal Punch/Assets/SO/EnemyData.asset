@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97a5270f08639eb408bb603e90f4b2d7, type: 3}
   m_Name: EnemyData
   m_EditorClassIdentifier: 
-  _health: 100
-  _power: 10
+  _health: 150
+  _power: 15
