@@ -20,4 +20,12 @@ namespace NewTypes
         public bool IsInteractableUI {get; set;}
         public TouchPhase Phase {get; set;}
     }
+
+    public enum BoxerState
+    {
+        Fighting,
+        NoHealth,
+        FinalPunch,
+        Ragdoll
+    }
 }

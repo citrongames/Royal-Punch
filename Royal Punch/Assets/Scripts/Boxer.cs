@@ -1,4 +1,5 @@
 using UnityEngine;
+using NewTypes;
 
 public class Boxer : MonoBehaviour
 {
@@ -7,6 +8,8 @@ public class Boxer : MonoBehaviour
     protected Rigidbody _ridigbody;
     protected Animator _animator;
     protected int _health;
+    public int Health { get => _health; }
+    protected BoxerState _state;
 
     //Move logic
     [SerializeField] protected float _moveSpeed;
@@ -39,6 +42,12 @@ public class Boxer : MonoBehaviour
     //Healthbar logic
     [SerializeField] protected Healthbar _healthbar;
 
+    //No health logic
+    protected int _animIsNoHealth;
+
+    //Final punch logic
+    protected int _animIsFinalPunch;
+
     protected virtual void Init()
     {
         _ridigbody = GetComponent<Rigidbody>();
@@ -47,6 +56,7 @@ public class Boxer : MonoBehaviour
 
         _punchAnimEvents = GetComponentInChildren<AnimEventHelper>();
         _punchAnimEvents.MyEvent += Punch;
+        _punchAnimEvents.MyEvent2 += FinalPunch;
 
         _healthbar = GetComponentInChildren<Healthbar>();
 
@@ -56,6 +66,11 @@ public class Boxer : MonoBehaviour
         {
             _healthbar.SetHealth(_health, _data.Health);
         }
+
+        _animIsNoHealth = Animator.StringToHash("IsNoHealth");
+        _animIsFinalPunch = Animator.StringToHash("IsFinalPunch");
+
+        SetState(BoxerState.Fighting);
     }
 
     protected virtual void UpdateFixed()
@@ -65,38 +80,49 @@ public class Boxer : MonoBehaviour
 
     protected virtual void UpdateNormal()
     {
-        if (_isMoving)
+        if (_state == BoxerState.Fighting)
         {
-            StartMoving();
+            RotateTo(_lockTarget);
+
+            if (_isMoving)
+            {
+                StartMoving();
+            }
+
+            if (_isPunhingStarted)
+            {
+                PunchTransition(1);
+            }   
+            if (_isPunchingEnded)
+            {
+                PunchTransition(0);
+            } 
         }
-
-        RotateTo(_lockTarget);
-
-        if (_isPunhingStarted)
+        else if (_state == BoxerState.FinalPunch)
         {
-            PunchTransition(1);
-        }   
-        if (_isPunchingEnded)
-        {
-            PunchTransition(0);
-        } 
 
-        _isMoving = false;
+        }
     }
 
     protected virtual void CollisionEnter(Collision other) 
     {
-        if (other.gameObject.CompareTag("Boxer"))
+        if (_state == BoxerState.Fighting)
         {
-            InitPunchTransition(true, other.gameObject.GetComponent<Boxer>());
+            if (other.gameObject.CompareTag("Boxer"))
+            {
+                InitPunchTransition(true, other.gameObject.GetComponent<Boxer>());
+            }
         }
     }
 
     protected virtual void CollisionExit(Collision other) 
     {
-        if (other.gameObject.CompareTag("Boxer"))
+        if (_state == BoxerState.Fighting)
         {
-            InitPunchTransition(false, null);
+            if (other.gameObject.CompareTag("Boxer"))
+            {
+                InitPunchTransition(false, null);
+            }
         }
     }
 
@@ -124,12 +150,22 @@ public class Boxer : MonoBehaviour
         }
     }
 
+    protected void FinalPunch()
+    {
+        _animator.SetBool(_animIsFinalPunch, false);
+    }
+
     protected void Punch(int hand)
     {
         if (!_isPunchingEnded)
         {
             _punchObject.Damage(_data.Power);
             PlayPunchParticle(hand);
+
+            if (_punchObject.Health == 0)
+            {
+                SetState(BoxerState.FinalPunch);
+            }
         }
     }
 
@@ -157,7 +193,7 @@ public class Boxer : MonoBehaviour
         _health -= value;
         if (_health <= 0)
         {
-            Debug.Log("No health " + gameObject.name);
+            SetState(BoxerState.NoHealth);
             _health = 0;
         }
 
@@ -213,11 +249,41 @@ public class Boxer : MonoBehaviour
     {
         _ridigbody.velocity = _movePosition * _moveSpeed;
         AnimSetMoveState(_animMoveDirection);
+
+        _isMoving = false;
     }
 
     protected void AnimSetMoveState(Vector2 state)
     {
         _animator.SetFloat(_dirXHash, state.x);
         _animator.SetFloat(_dirYHash, state.y);
+    }
+
+    protected void SetState(BoxerState state)
+    {
+        _state = state;
+        switch (_state)
+        {
+            case BoxerState.Fighting:
+                break;
+            case BoxerState.NoHealth:
+                _isMoving = false;
+                _isPunchingEnded = true;
+                _isPunhingStarted = false;
+                _isRotating = false;
+                _animator.SetBool(_animIsNoHealth, true);
+                _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                break;
+            case BoxerState.FinalPunch:
+                _isMoving = false;
+                _isPunchingEnded = true;
+                _isPunhingStarted = false;
+                _isRotating = false;
+                _animator.SetBool(_animIsFinalPunch, true);
+                _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                break;
+            case BoxerState.Ragdoll:
+                break;
+        }
     }
 }
