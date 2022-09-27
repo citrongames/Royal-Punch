@@ -26,12 +26,4 @@ public class Player : Boxer
     {
         CollisionExit(other);
     }
-
-    protected override void Init()
-    {
-        base.Init();
-        _dirXHash = Animator.StringToHash("DirX");
-        _dirYHash = Animator.StringToHash("DirY");
-        _animPunching = Animator.StringToHash("Armature|GGPunch");
-    }
 }

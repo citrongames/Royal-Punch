@@ -24,7 +24,7 @@ public class Boxer : MonoBehaviour
     [SerializeField] protected float _turnSpeed;
     protected int _animIsTurning;
     protected bool _isRotating = false;
-    protected const float MIN_ROT = 0.01f;
+    protected const float MIN_ROT = 0.0001f;
 
     //Punching logic
     [SerializeField] protected float _punchAnimChangeSpeed;
@@ -69,6 +69,9 @@ public class Boxer : MonoBehaviour
 
         _animIsNoHealth = Animator.StringToHash("IsNoHealth");
         _animIsFinalPunch = Animator.StringToHash("IsFinalPunch");
+        _dirXHash = Animator.StringToHash("DirX");
+        _dirYHash = Animator.StringToHash("DirY");
+        _animPunching = Animator.StringToHash("Armature|GGPunch");
 
         SetState(BoxerState.Fighting);
     }
@@ -208,7 +211,7 @@ public class Boxer : MonoBehaviour
         if (lockTarget != null)
         {
             Quaternion targetRotation = Quaternion.LookRotation(_lockTarget.transform.position - transform.position);
-            if (Quaternion.Angle(transform.rotation, targetRotation) > MIN_ROT && !_isRotating)
+            if (Quaternion.Angle(transform.rotation, targetRotation) >= MIN_ROT && !_isRotating)
             {
                 _isRotating = true;
                 if (!_isMoving)

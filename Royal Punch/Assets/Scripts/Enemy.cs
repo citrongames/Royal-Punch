@@ -27,11 +27,4 @@ public class Enemy : Boxer
     {
         CollisionExit(other);
     }
-
-    //Custom override
-    protected override void Init()
-    {
-        base.Init();
-        _animPunching = Animator.StringToHash("Armature|BossPunch");
-    }
 }
