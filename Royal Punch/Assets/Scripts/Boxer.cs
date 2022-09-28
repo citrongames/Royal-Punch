@@ -6,7 +6,9 @@ public class Boxer : MonoBehaviour
     //Base components
     [SerializeField] protected BoxerData _data;
     protected Rigidbody _ridigbody;
+    private Collider _collider;
     protected Animator _animator;
+    private GameObject _model;
     protected int _health;
     public int Health { get => _health; }
     protected BoxerState _state;
@@ -48,11 +50,18 @@ public class Boxer : MonoBehaviour
     //Final punch logic
     protected int _animIsFinalPunch;
 
+    //Ragdoll logic
+    private bool _startRagdoll = false;
+    private Rigidbody[] _ragdollRigidbodies;
+    private CharacterJoint[] _ragdollJoints;
+    private Collider[] _ragdollColliders;
+
     protected virtual void Init()
     {
         _ridigbody = GetComponent<Rigidbody>();
+        _collider = GetComponent<Collider>();
         _animator = GetComponentInChildren<Animator>();
-        _animIsTurning = Animator.StringToHash("IsTurning");
+        _model = _animator.gameObject;
 
         _punchAnimEvents = GetComponentInChildren<AnimEventHelper>();
         _punchAnimEvents.MyEvent += Punch;
@@ -67,11 +76,18 @@ public class Boxer : MonoBehaviour
             _healthbar.SetHealth(_health, _data.Health);
         }
 
+        _animIsTurning = Animator.StringToHash("IsTurning");
         _animIsNoHealth = Animator.StringToHash("IsNoHealth");
         _animIsFinalPunch = Animator.StringToHash("IsFinalPunch");
         _dirXHash = Animator.StringToHash("DirX");
         _dirYHash = Animator.StringToHash("DirY");
         _animPunching = Animator.StringToHash("Armature|GGPunch");
+
+        _ragdollRigidbodies = _model.GetComponentsInChildren<Rigidbody>();
+        _ragdollJoints = _model.GetComponentsInChildren<CharacterJoint>();
+        _ragdollColliders = _model.GetComponentsInChildren<Collider>();
+        _startRagdoll = false;
+        EnableRagdoll(_startRagdoll);
 
         SetState(BoxerState.Fighting);
     }
@@ -156,6 +172,10 @@ public class Boxer : MonoBehaviour
     protected void FinalPunch()
     {
         _animator.SetBool(_animIsFinalPunch, false);
+        if (_punchObject != null)
+        {
+            _punchObject.SetState(BoxerState.Ragdoll);
+        }
     }
 
     protected void Punch(int hand)
@@ -262,7 +282,31 @@ public class Boxer : MonoBehaviour
         _animator.SetFloat(_dirYHash, state.y);
     }
 
-    protected void SetState(BoxerState state)
+    private void EnableRagdoll(bool isEnabled)
+    {
+        //base physics
+        _animator.enabled = !isEnabled;
+        _ridigbody.detectCollisions = !isEnabled;
+        _ridigbody.useGravity = !isEnabled;
+        _collider.enabled = !isEnabled;
+
+        //ragdoll components
+        foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
+        {
+            ragdollRigidbody.detectCollisions = isEnabled;
+            ragdollRigidbody.useGravity = isEnabled;
+        }
+        foreach (CharacterJoint ragdollJoint in _ragdollJoints)
+        {
+            ragdollJoint.enableCollision = isEnabled;
+        }
+        foreach (Collider ragdollCollider in _ragdollColliders)
+        {
+            ragdollCollider.enabled = isEnabled;
+        }
+    }
+
+    public void SetState(BoxerState state)
     {
         _state = state;
         switch (_state)
@@ -286,6 +330,13 @@ public class Boxer : MonoBehaviour
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
                 break;
             case BoxerState.Ragdoll:
+                _isMoving = false;
+                _isPunchingEnded = true;
+                _isPunhingStarted = false;
+                _isRotating = false;
+                _animator.SetBool(_animIsFinalPunch, true);
+                _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                EnableRagdoll(true);
                 break;
         }
     }
