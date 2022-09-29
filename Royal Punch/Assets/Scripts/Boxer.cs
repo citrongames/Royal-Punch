@@ -49,6 +49,7 @@ public class Boxer : MonoBehaviour
 
     //Final punch logic
     protected int _animIsFinalPunch;
+    protected int _animFinalPunch;
 
     //Ragdoll logic
     private bool _startRagdoll = false;
@@ -82,6 +83,7 @@ public class Boxer : MonoBehaviour
         _dirXHash = Animator.StringToHash("DirX");
         _dirYHash = Animator.StringToHash("DirY");
         _animPunching = Animator.StringToHash("Armature|GGPunch");
+        _animFinalPunch = Animator.StringToHash("Armature|BossSuper2");
 
         _ragdollRigidbodies = _model.GetComponentsInChildren<Rigidbody>();
         _ragdollJoints = _model.GetComponentsInChildren<CharacterJoint>();
@@ -99,7 +101,7 @@ public class Boxer : MonoBehaviour
 
     protected virtual void UpdateNormal()
     {
-        if (_state == BoxerState.Fighting)
+        if (_state == BoxerState.Fighting || _state == BoxerState.FinalPunch)
         {
             RotateTo(_lockTarget);
 
@@ -117,15 +119,11 @@ public class Boxer : MonoBehaviour
                 PunchTransition(0);
             } 
         }
-        else if (_state == BoxerState.FinalPunch)
-        {
-
-        }
     }
 
     protected virtual void CollisionEnter(Collision other) 
     {
-        if (_state == BoxerState.Fighting)
+        if (_state == BoxerState.Fighting || _state == BoxerState.FinalPunch)
         {
             if (other.gameObject.CompareTag("Boxer"))
             {
@@ -136,7 +134,7 @@ public class Boxer : MonoBehaviour
 
     protected virtual void CollisionExit(Collision other) 
     {
-        if (_state == BoxerState.Fighting)
+        if (_state == BoxerState.Fighting || _state == BoxerState.FinalPunch)
         {
             if (other.gameObject.CompareTag("Boxer"))
             {
@@ -154,7 +152,16 @@ public class Boxer : MonoBehaviour
         _punchAnimLerpTime = 0;
 
         if (state)
-            _animator.Play(_animPunching, PUNCH_LAYER, 0);
+        {
+            if (_state == BoxerState.Fighting)
+                _animator.Play(_animPunching, PUNCH_LAYER, 0);
+            else if (_state == BoxerState.FinalPunch)
+                _animator.Play(_animFinalPunch, PUNCH_LAYER, 0);
+        }
+        else
+        {
+            _animator.StopPlayback();
+        }
 
         _punchObject = punchObject;
     }
@@ -174,8 +181,9 @@ public class Boxer : MonoBehaviour
         _animator.SetBool(_animIsFinalPunch, false);
         if (_punchObject != null)
         {
-            _punchObject.SetState(BoxerState.Ragdoll);
+            _punchObject.Damage(_data.Power);
         }
+        InitPunchTransition(false, null);
     }
 
     protected void Punch(int hand)
@@ -185,7 +193,7 @@ public class Boxer : MonoBehaviour
             _punchObject.Damage(_data.Power);
             PlayPunchParticle(hand);
 
-            if (_punchObject.Health == 0)
+            if (_punchObject.Health <= _data.Power)
             {
                 SetState(BoxerState.FinalPunch);
             }
@@ -216,7 +224,7 @@ public class Boxer : MonoBehaviour
         _health -= value;
         if (_health <= 0)
         {
-            SetState(BoxerState.NoHealth);
+            SetState(BoxerState.Ragdoll);
             _health = 0;
         }
 
@@ -306,6 +314,11 @@ public class Boxer : MonoBehaviour
         }
     }
 
+    private void ShowHealthBar(bool state)
+    {
+        _healthbar.GetComponent<Canvas>().enabled = state;
+    }
+
     public void SetState(BoxerState state)
     {
         _state = state;
@@ -322,12 +335,7 @@ public class Boxer : MonoBehaviour
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
                 break;
             case BoxerState.FinalPunch:
-                _isMoving = false;
-                _isPunchingEnded = true;
-                _isPunhingStarted = false;
-                _isRotating = false;
                 _animator.SetBool(_animIsFinalPunch, true);
-                _animator.SetLayerWeight(PUNCH_LAYER, 0);
                 break;
             case BoxerState.Ragdoll:
                 _isMoving = false;
@@ -337,6 +345,7 @@ public class Boxer : MonoBehaviour
                 _animator.SetBool(_animIsFinalPunch, true);
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
                 EnableRagdoll(true);
+                ShowHealthBar(false);
                 break;
         }
     }
