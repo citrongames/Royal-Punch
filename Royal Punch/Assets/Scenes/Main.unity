@@ -1511,6 +1511,8 @@ MonoBehaviour:
   _leftPunch: {fileID: 0}
   _rightPunch: {fileID: 0}
   _healthbar: {fileID: 0}
+  _getUpCooldownTime: 3
+  _boneRestoreSpeed: 1
 --- !u!1 &593269396 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7774620517717459388, guid: 266b48edddf88844bb960cdb6da5dec1,
@@ -2951,6 +2953,8 @@ MonoBehaviour:
   _leftPunch: {fileID: 249542420}
   _rightPunch: {fileID: 1876545984}
   _healthbar: {fileID: 0}
+  _getUpCooldownTime: 3
+  _boneRestoreSpeed: 1
 --- !u!1 &1269073733
 GameObject:
   m_ObjectHideFlags: 0

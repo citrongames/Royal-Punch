@@ -1,5 +1,6 @@
 using UnityEngine;
 using NewTypes;
+using System.Collections.Generic;
 
 public class Boxer : MonoBehaviour
 {
@@ -57,6 +58,14 @@ public class Boxer : MonoBehaviour
     private CharacterJoint[] _ragdollJoints;
     private Collider[] _ragdollColliders;
 
+    //Bone restore logic
+    [SerializeField] private float _getUpCooldownTime;
+    [SerializeField] private float _boneRestoreSpeed;
+    private List<BoneTransform> _bonesOriginalPose = new List<BoneTransform>();
+    private List<BoneTransform> _bonesStartPose = new List<BoneTransform>();
+    private float _boneRestoreLerp = 0;
+    private float _getUpTimer;
+
     protected virtual void Init()
     {
         _ridigbody = GetComponent<Rigidbody>();
@@ -90,6 +99,8 @@ public class Boxer : MonoBehaviour
         _ragdollColliders = _model.GetComponentsInChildren<Collider>();
         _startRagdoll = false;
         EnableRagdoll(_startRagdoll);
+        EnableBasePhysics(true);
+        RecordBones();
 
         SetState(BoxerState.Fighting);
     }
@@ -118,6 +129,18 @@ public class Boxer : MonoBehaviour
             {
                 PunchTransition(0);
             } 
+        }
+
+        if (_state == BoxerState.Ragdoll)
+        {
+            _getUpTimer += Time.deltaTime;
+            if (_getUpTimer >= _getUpCooldownTime)
+                SetState(BoxerState.RestoreBones);
+        }
+
+        if (_state == BoxerState.RestoreBones)
+        {
+            RestoringBones();
         }
     }
 
@@ -292,13 +315,6 @@ public class Boxer : MonoBehaviour
 
     private void EnableRagdoll(bool isEnabled)
     {
-        //base physics
-        _animator.enabled = !isEnabled;
-        _ridigbody.detectCollisions = !isEnabled;
-        _ridigbody.useGravity = !isEnabled;
-        _collider.enabled = !isEnabled;
-
-        //ragdoll components
         foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
         {
             ragdollRigidbody.detectCollisions = isEnabled;
@@ -314,9 +330,58 @@ public class Boxer : MonoBehaviour
         }
     }
 
+    private void EnableBasePhysics(bool isEnabled)
+    {
+        _animator.enabled = isEnabled;
+        _ridigbody.detectCollisions = isEnabled;
+        _ridigbody.useGravity = isEnabled;
+        _collider.enabled = isEnabled;
+    }
+
     private void ShowHealthBar(bool state)
     {
         _healthbar.GetComponent<Canvas>().enabled = state;
+    }
+
+    private void RecordBones()
+    {
+        _bonesOriginalPose.Clear();
+        foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
+        {
+            _bonesOriginalPose.Add(new BoneTransform(ragdollRigidbody.transform.localPosition, ragdollRigidbody.transform.localRotation));
+        }
+    }
+
+    private void RestoreBones()
+    {
+        _bonesStartPose.Clear();
+        foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
+        {
+            _bonesStartPose.Add(new BoneTransform(ragdollRigidbody.transform.localPosition, ragdollRigidbody.transform.localRotation));
+        }
+        _boneRestoreLerp = 0;
+    }
+
+    private void RestoringBones()
+    {
+        int i = 0;
+        bool _restoreBones = false;
+
+        foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
+        {
+            ragdollRigidbody.transform.localPosition = Vector3.Lerp(_bonesStartPose[i].Position, _bonesOriginalPose[i].Position, _boneRestoreLerp * _boneRestoreSpeed);
+            _restoreBones |= (ragdollRigidbody.transform.localPosition != _bonesOriginalPose[i].Position);
+
+            ragdollRigidbody.transform.localRotation = Quaternion.Lerp(_bonesStartPose[i].Rotation, _bonesOriginalPose[i].Rotation, _boneRestoreLerp * _boneRestoreSpeed);
+            _restoreBones |= (Quaternion.Angle(ragdollRigidbody.transform.localRotation, _bonesOriginalPose[i].Rotation) >= MIN_ROT);
+
+            i++;
+        }
+
+        _boneRestoreLerp += Time.deltaTime;
+
+        if (!_restoreBones)
+            SetState(BoxerState.Fighting);
     }
 
     public void SetState(BoxerState state)
@@ -325,6 +390,15 @@ public class Boxer : MonoBehaviour
         switch (_state)
         {
             case BoxerState.Fighting:
+                _isMoving = false;
+                _isPunchingEnded = false;
+                _isPunhingStarted = false;
+                _isRotating = false;
+                _animator.SetBool(_animIsFinalPunch, false);
+                _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                EnableBasePhysics(true);
+                EnableRagdoll(false);
+                ShowHealthBar(true);
                 break;
             case BoxerState.NoHealth:
                 _isMoving = false;
@@ -339,13 +413,24 @@ public class Boxer : MonoBehaviour
                 break;
             case BoxerState.Ragdoll:
                 _isMoving = false;
-                _isPunchingEnded = true;
+                _isPunchingEnded = false;
                 _isPunhingStarted = false;
                 _isRotating = false;
-                _animator.SetBool(_animIsFinalPunch, true);
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                EnableBasePhysics(false);
                 EnableRagdoll(true);
                 ShowHealthBar(false);
+                _getUpTimer = 0;
+                break;
+            case BoxerState.RestoreBones:
+                _isMoving = false;
+                _isPunchingEnded = false;
+                _isPunhingStarted = false;
+                _isRotating = false;
+                _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                EnableBasePhysics(false);
+                EnableRagdoll(false);
+                RestoreBones();
                 break;
         }
     }

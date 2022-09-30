@@ -26,6 +26,19 @@ namespace NewTypes
         Fighting,
         NoHealth,
         FinalPunch,
-        Ragdoll
+        Ragdoll,
+        RestoreBones
+    }
+
+    public struct BoneTransform
+    {
+        public Vector3 Position;
+        public Quaternion Rotation;
+
+        public BoneTransform(Vector3 position, Quaternion rotation)
+        {
+            Position = position;
+            Rotation = rotation;
+        }
     }
 }
