@@ -13,6 +13,7 @@ public class Boxer : MonoBehaviour
     protected int _health;
     public int Health { get => _health; }
     protected BoxerState _state;
+    private TargetPoint _targetPoint;
 
     //Move logic
     [SerializeField] protected float _moveSpeed;
@@ -53,14 +54,18 @@ public class Boxer : MonoBehaviour
     protected int _animFinalPunch;
 
     //Ragdoll logic
+    [SerializeField] private Rigidbody _impactPoint;
+    [SerializeField] private float _impactPower;
     private bool _startRagdoll = false;
     private Rigidbody[] _ragdollRigidbodies;
     private CharacterJoint[] _ragdollJoints;
     private Collider[] _ragdollColliders;
 
+
     //Bone restore logic
     [SerializeField] private float _getUpCooldownTime;
     [SerializeField] private float _boneRestoreSpeed;
+    [SerializeField] private GameObject _armatureRoot;
     private List<BoneTransform> _bonesOriginalPose = new List<BoneTransform>();
     private List<BoneTransform> _bonesStartPose = new List<BoneTransform>();
     private float _boneRestoreLerp = 0;
@@ -72,6 +77,7 @@ public class Boxer : MonoBehaviour
         _collider = GetComponent<Collider>();
         _animator = GetComponentInChildren<Animator>();
         _model = _animator.gameObject;
+        _targetPoint = GetComponentInChildren<TargetPoint>();
 
         _punchAnimEvents = GetComponentInChildren<AnimEventHelper>();
         _punchAnimEvents.MyEvent += Punch;
@@ -136,6 +142,8 @@ public class Boxer : MonoBehaviour
             _getUpTimer += Time.deltaTime;
             if (_getUpTimer >= _getUpCooldownTime)
                 SetState(BoxerState.RestoreBones);
+
+            _targetPoint.transform.position = new Vector3(_armatureRoot.transform.position.x, 0, _armatureRoot.transform.position.z);
         }
 
         if (_state == BoxerState.RestoreBones)
@@ -262,6 +270,8 @@ public class Boxer : MonoBehaviour
         if (lockTarget != null)
         {
             Quaternion targetRotation = Quaternion.LookRotation(_lockTarget.transform.position - transform.position);
+            targetRotation.eulerAngles =  new Vector3(0, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
+
             if (Quaternion.Angle(transform.rotation, targetRotation) >= MIN_ROT && !_isRotating)
             {
                 _isRotating = true;
@@ -277,6 +287,7 @@ public class Boxer : MonoBehaviour
             if (_isRotating)
             {
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime);
+                transform.eulerAngles =  new Vector3(0, transform.eulerAngles.y, transform.eulerAngles.z);
             }
         }
     }
@@ -338,6 +349,14 @@ public class Boxer : MonoBehaviour
         _collider.enabled = isEnabled;
     }
 
+    private void ApplyRagdollForce(Vector3 direction, float power)
+    {
+        if (_impactPoint != null)
+        {
+            _impactPoint.AddRelativeForce(direction * power, ForceMode.Impulse);
+        }
+    }
+
     private void ShowHealthBar(bool state)
     {
         _healthbar.GetComponent<Canvas>().enabled = state;
@@ -352,8 +371,28 @@ public class Boxer : MonoBehaviour
         }
     }
 
+    private void TranslateBones()
+    {
+        List<Vector3> positions = new List<Vector3>();
+        foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
+        {
+            positions.Add(ragdollRigidbody.transform.position);
+        }
+
+        //move parent to ragdoll root
+        this.transform.position = new Vector3(_armatureRoot.transform.position.x, this.transform.position.y, _armatureRoot.transform.position.z);
+
+        int i = 0;
+        foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
+        {
+            ragdollRigidbody.transform.position = positions[i];
+            i++;
+        }
+    }
+
     private void RestoreBones()
     {
+        TranslateBones();
         _bonesStartPose.Clear();
         foreach (Rigidbody ragdollRigidbody in _ragdollRigidbodies)
         {
@@ -381,7 +420,10 @@ public class Boxer : MonoBehaviour
         _boneRestoreLerp += Time.deltaTime;
 
         if (!_restoreBones)
+        {
             SetState(BoxerState.Fighting);
+            _targetPoint.transform.localPosition = Vector3.zero;
+        }
     }
 
     public void SetState(BoxerState state)
@@ -417,8 +459,10 @@ public class Boxer : MonoBehaviour
                 _isPunhingStarted = false;
                 _isRotating = false;
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
+                _animator.SetBool(_animIsFinalPunch, false);
                 EnableBasePhysics(false);
                 EnableRagdoll(true);
+                ApplyRagdollForce(Vector3.back, _impactPower);
                 ShowHealthBar(false);
                 _getUpTimer = 0;
                 break;
