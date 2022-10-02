@@ -182,6 +182,11 @@ public class Boxer : MonoBehaviour
         _currentPunchWeight = _animator.GetLayerWeight(PUNCH_LAYER);
         _punchAnimLerpTime = 0;
 
+        if (punchObject != null && punchObject.Health <= _data.Power)
+        {
+            SetState(BoxerState.FinalPunch);
+        }
+
         if (state)
         {
             if (_state == BoxerState.Fighting)
@@ -219,7 +224,7 @@ public class Boxer : MonoBehaviour
 
     protected void Punch(int hand)
     {
-        if (!_isPunchingEnded)
+        if (!_isPunchingEnded && !_animator.GetBool(_animIsFinalPunch))
         {
             _punchObject.Damage(_data.Power);
             PlayPunchParticle(hand);
@@ -433,7 +438,7 @@ public class Boxer : MonoBehaviour
         {
             case BoxerState.Fighting:
                 _isMoving = false;
-                _isPunchingEnded = false;
+                _isPunchingEnded = true;
                 _isPunhingStarted = false;
                 _isRotating = false;
                 _animator.SetBool(_animIsFinalPunch, false);
@@ -455,7 +460,7 @@ public class Boxer : MonoBehaviour
                 break;
             case BoxerState.Ragdoll:
                 _isMoving = false;
-                _isPunchingEnded = false;
+                _isPunchingEnded = true;
                 _isPunhingStarted = false;
                 _isRotating = false;
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
@@ -468,7 +473,7 @@ public class Boxer : MonoBehaviour
                 break;
             case BoxerState.RestoreBones:
                 _isMoving = false;
-                _isPunchingEnded = false;
+                _isPunchingEnded = true;
                 _isPunhingStarted = false;
                 _isRotating = false;
                 _animator.SetLayerWeight(PUNCH_LAYER, 0);
