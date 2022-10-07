@@ -19,7 +19,7 @@ public class Healthbar : MonoBehaviour
     private Image _bar;
     private Image _maskBar;
 
-    void Start()
+    void Awake()
     {
         _text = GetComponentInChildren<TextMeshProUGUI>();
 

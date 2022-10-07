@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class Boxer : MonoBehaviour
 {
+    //TODO: Refactor this into state machine
+
     //Base components
     [SerializeField] protected BoxerData _data;
     protected Rigidbody _ridigbody;
@@ -176,16 +178,20 @@ public class Boxer : MonoBehaviour
 
     protected void InitPunchTransition(bool state, Boxer punchObject)
     {
+        if (punchObject != null && punchObject.Health <= _data.Power)
+        {
+            SetState(BoxerState.FinalPunch);
+        }
+        else
+        {
+            SetState(BoxerState.Fighting);
+        }
+
         _isPunhingStarted = state;
         _isPunchingEnded = !state;
 
         _currentPunchWeight = _animator.GetLayerWeight(PUNCH_LAYER);
         _punchAnimLerpTime = 0;
-
-        if (punchObject != null && punchObject.Health <= _data.Power)
-        {
-            SetState(BoxerState.FinalPunch);
-        }
 
         if (state)
         {
@@ -262,6 +268,20 @@ public class Boxer : MonoBehaviour
         {
             SetState(BoxerState.Ragdoll);
             _health = 0;
+        }
+
+        if (_healthbar != null)
+        {
+            _healthbar.SetHealth(_health, _data.Health);
+        }
+    }
+
+    private void AddHealth(int value)
+    {
+        _health += value;
+        if (_health > _data.Health)
+        {
+            _health = _data.Health;
         }
 
         if (_healthbar != null)
@@ -426,6 +446,9 @@ public class Boxer : MonoBehaviour
 
         if (!_restoreBones)
         {
+            //HACK, remove after proper death state implementation
+            AddHealth(_data.Health);
+            //--
             SetState(BoxerState.Fighting);
             _targetPoint.transform.localPosition = Vector3.zero;
         }

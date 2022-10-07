@@ -1,0 +1,20 @@
+Enemy supers:
+	Forward punch
+	Round punch
+	Magnet punch
+Enemy tired after super punch
+Enemy scale changes a little while punching him
+Game 4 states:
+	Beginning
+	Ingame
+	Win
+	Lost
+Buttons in the beggining:
+	Power
+	Health
+Pause button ingame
+Retry button in lost
+Continue button in win
+Player waiting anim in the beggining
+Player dancing anim in win
+Confetti after winning
