@@ -309,6 +309,8 @@ public class Boxer : MonoBehaviour
                 if (!_isMoving)
                     _animator.SetBool(_animIsTurning, false);
             }
+            if (_isMoving)
+                    _animator.SetBool(_animIsTurning, false);
             if (_isRotating)
             {
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime);
